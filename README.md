@@ -1,1 +1,2 @@
+Extract_pdf_image_and_analyze_report.json
 上傳PDF檔案,截取圖片,產生分析報告,包含img_url
