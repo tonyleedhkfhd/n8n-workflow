@@ -1,0 +1,322 @@
+{
+  "name": "Extract pdf image and analyze report",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -1020,
+        20
+      ],
+      "id": "78bb478a-721d-433f-a615-8f131ef1d87f",
+      "name": "When clicking ‘Test workflow’"
+    },
+    {
+      "parameters": {
+        "content": "https://www.convertapi.com/a/api/pdf-to-extract-images",
+        "height": 80
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -740,
+        -100
+      ],
+      "id": "b1c2e97b-3539-4e16-89df-434a34c6a243",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "operation": "toText",
+        "sourceProperty": "content",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        300,
+        20
+      ],
+      "id": "e66f7c66-9096-4bf5-b1dc-02dafeaa62ee",
+      "name": "Convert to File"
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "1WoqaMgaCD-gChGWUqPRJ7-pxbTozEuXN",
+          "mode": "list",
+          "cachedResultName": "Building Effective AI Agents _ Anthropic.pdf",
+          "cachedResultUrl": "https://drive.google.com/file/d/1WoqaMgaCD-gChGWUqPRJ7-pxbTozEuXN/view?usp=drivesdk"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -860,
+        20
+      ],
+      "id": "3b2a81eb-19b4-4685-90a3-1b4096b2d3b7",
+      "name": "Get pdf file",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "nxqV58j7kOaLFzhj",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "7715e33a-c5cc-4a22-aa28-ac19a24bbd7c",
+              "name": "url",
+              "value": "={{ $json.Url }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -360,
+        20
+      ],
+      "id": "89208aa8-37d8-424c-a936-52539a9bc7ee",
+      "name": "Get all img_url"
+    },
+    {
+      "parameters": {
+        "resource": "image",
+        "operation": "analyze",
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o",
+          "mode": "list",
+          "cachedResultName": "GPT-4O"
+        },
+        "text": "請幫我分析影片,並詳加說明",
+        "imageUrls": "={{ $json.url }}",
+        "simplify": false,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        -200,
+        20
+      ],
+      "id": "5c1ece53-1910-42d6-a1e4-bfa6d5a83fe9",
+      "name": "Analyze image",
+      "credentials": {
+        "openAiApi": {
+          "id": "4wadssyBOfOAfo2P",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "2868a5bd-86a8-4962-a867-b4a354276181",
+              "name": "content",
+              "value": "={{ $('Get all img_url').item.json.url }}\n{{ $json.choices[0].message.content }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -40,
+        20
+      ],
+      "id": "7cea9e1b-0094-4220-bdf6-f13ab795e394",
+      "name": "Get image analyze report"
+    },
+    {
+      "parameters": {
+        "jsCode": "const mergedContent = items.map(item => item.json.content).join('\\n');\n\nreturn [\n  {\n    json: {\n      content: mergedContent\n    }\n  }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        120,
+        20
+      ],
+      "id": "de4b6fab-d086-4bf3-81fc-a6f7b7eac24b",
+      "name": "Integrate all content to a text"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://v2.convertapi.com/convert/pdf/to/extract-images",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer secret_k49gWH0cXK0btGae"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "StoreFile",
+              "value": "true"
+            },
+            {
+              "name": "ImageOutputFormat",
+              "value": "jpg"
+            },
+            {
+              "parameterType": "formBinaryData",
+              "name": "File",
+              "inputDataFieldName": "data"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -680,
+        20
+      ],
+      "id": "9e09364d-fb82-4524-b6aa-b8a6040893ba",
+      "name": "Extract pdf image"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "Files",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        -520,
+        20
+      ],
+      "id": "b0ce7fdd-7328-49b2-8ec6-797205aa7ab5",
+      "name": "Execuate array data"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Test workflow’": {
+      "main": [
+        [
+          {
+            "node": "Get pdf file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get pdf file": {
+      "main": [
+        [
+          {
+            "node": "Extract pdf image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get all img_url": {
+      "main": [
+        [
+          {
+            "node": "Analyze image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analyze image": {
+      "main": [
+        [
+          {
+            "node": "Get image analyze report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get image analyze report": {
+      "main": [
+        [
+          {
+            "node": "Integrate all content to a text",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Integrate all content to a text": {
+      "main": [
+        [
+          {
+            "node": "Convert to File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract pdf image": {
+      "main": [
+        [
+          {
+            "node": "Execuate array data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execuate array data": {
+      "main": [
+        [
+          {
+            "node": "Get all img_url",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Asia/Taipei",
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "versionId": "5b68b911-68cd-45cd-beac-736d67bb68c4",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "36147281c0732d54779505fe69cf0516d4b8760fdbbc308b1950e452edcf85e8"
+  },
+  "id": "NDCN2arRu5tLuP61",
+  "tags": []
+}
